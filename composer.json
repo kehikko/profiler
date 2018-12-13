@@ -8,6 +8,7 @@
   }],
   "require": {
     "php": ">=7.0.0"
+    // this should be already included by kernel "symfony/yaml": "^4.2"
   },
   "autoload": {
     "files": ["profiler.php"]
