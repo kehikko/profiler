@@ -76,7 +76,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 /* this should be given to later functions so that they are able to generate links correctly */
-$root_url = '/_profiler';
+$root_url = '/_profiler/';
 /* parse profiler "route" url */
 $request_url = trim(substr($_SERVER['REQUEST_URI'], strlen($root_url)), '/');
 
@@ -98,7 +98,7 @@ if ($request_url == '') {
         profiler_svg_graph_generate($id, $datapath);
     } else if (strpos($request_url, 'callgraph/') === 0) {
         /* view call graph */
-        profiler_html_profile_call_graph($id, $root_url, $datapath);
+        echo profiler_html_profile_call_graph($id, $root_url, $datapath);
     } else {
         /* view call profile */
         echo profiler_html_profile($id, $root_url, $datapath);

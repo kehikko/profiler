@@ -37,7 +37,7 @@
       {% for profile in profiles %}
       <tr>
         <td>
-          <a href="{{ root_url }}/{{ profile.id }}">
+          <a href="{{ root_url }}{{ profile.id }}">
             {{ profile.meta.uri|slice(0, 80) }}
           </a>
         </td>

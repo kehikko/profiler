@@ -1,0 +1,6 @@
+yaml:
+    info: this is a test yaml
+    check: true
+    array:
+        - true
+        - null

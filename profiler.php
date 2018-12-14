@@ -114,21 +114,21 @@ function profiler_html_index($root_url = '/', $datapath = '/tmp/kehikko-php-prof
     $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
     $twig        = new Twig_Environment($twig_loader);
 
-    return $twig->render('kehikko-profiler-profiles.html.twig', ['profiles' => $profiles, 'root_url' => $root_url]);
+    echo $twig->render('kehikko-profiler-profiles.html.twig', ['profiles' => $profiles, 'root_url' => $root_url]);
 }
 
 function profiler_html_profile($id, $root_url = '/', $datapath = '/tmp/kehikko-php-profiler')
 {
     $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
     $twig        = new Twig_Environment($twig_loader);
-    return $twig->render('kehikko-profiler-profile.html.twig', ['profile' => profiler_profile_load($id, $datapath), 'root_url' => $root_url]);
+    echo $twig->render('kehikko-profiler-profile.html.twig', ['profile' => profiler_profile_load($id, $datapath), 'root_url' => $root_url]);
 }
 
 function profiler_html_profile_call_graph($id, $root_url = '/', $datapath = '/tmp/kehikko-php-profiler')
 {
     $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
     $twig        = new Twig_Environment($twig_loader);
-    return $twig->render('kehikko-profiler-profile-call-graph.html.twig', ['profile' => profiler_profile_load($id, $datapath), 'root_url' => $root_url]);
+    echo $twig->render('kehikko-profiler-profile-call-graph.html.twig', ['profile' => profiler_profile_load($id, $datapath), 'root_url' => $root_url]);
 }
 
 function profiler_profile_load($id, $datapath = '/tmp/kehikko-php-profiler')
