@@ -15,7 +15,7 @@ as a requirement when installing this from *Composer*.
 
 ## Requirements
 
-PHP 7.0, PHP profiler extension (listed below), Twig, Symfony Yaml and command dot (from GraphViz).
+***PHP 7.0***, PHP ***profiler extension*** (listed below), ***Twig***, ***Symfony Yaml*** and command ***dot*** (from GraphViz).
 
 One of these PHP-extensions is required:
 
