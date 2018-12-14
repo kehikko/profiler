@@ -1,0 +1,79 @@
+{% extends 'kehikko-profiler-base.html.twig' %}
+{% block content %}
+<h1>
+  <span class="glyphicon glyphicon-time"></span>
+  Profiled queries
+</h1>
+<div class="panel panel-default">
+  <table class="table table-condensed table-hover table-striped small">
+    <thead>
+      <tr class="bg-primary">
+        <th>
+          <span class="glyphicon glyphicon-link"></span>
+          URL
+        </th>
+        <th>
+          <span class="glyphicon glyphicon-time"></span>
+          Date and time
+        </th>
+        <th>
+          Method
+        </th>
+        <th>
+          Wall Time
+        </th>
+        <th>
+          CPU
+        </th>
+        <th>
+          Memory Usage
+        </th>
+        <th>
+          Memory Usage Peak
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for profile in profiles %}
+      <tr>
+        <td>
+          <a href="{{ root_url }}/{{ profile.id }}">
+            {{ profile.meta.uri|slice(0, 80) }}
+          </a>
+        </td>
+        <td>
+          {{ profile.meta.time|number_format(0, '', '')|date('Y-m-d H:i:s') }}
+        </td>
+        <td>
+          {{ profile.meta.server.REQUEST_METHOD }}
+        </td>
+        <td>
+          {{ profile.total.wt|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </td>
+        <td>
+          {{ profile.total.cpu|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </td>
+        <td>
+          {{ profile.total.mu|number_format }}
+          <span class="text-muted">
+            bytes
+          </span>
+        </td>
+        <td>
+          {{ profile.total.pmu|number_format }}
+          <span class="text-muted">
+            bytes
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock content %}

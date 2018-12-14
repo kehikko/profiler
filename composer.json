@@ -7,8 +7,9 @@
     "email": "aehparta@iki.fi"
   }],
   "require": {
-    "php": ">=7.0.0"
-    // this should be already included by kernel "symfony/yaml": "^4.2"
+    "php": ">=7.0.0",
+    "twig/twig": "^2.0",
+    "symfony/yaml": "^4.2"
   },
   "autoload": {
     "files": ["profiler.php"]

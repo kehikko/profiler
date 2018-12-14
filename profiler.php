@@ -1,19 +1,17 @@
 <?php
 
-function profiler_start()
+function profiler_start($datapath = '/tmp/kehikko-php-profiler')
 {
-    if (cfg(['profiler', 'enabled']) !== true) {
-        return;
-    }
-
     /* this file should not - under no circumstances - interfere with any other application */
     if (!extension_loaded('xhprof') && !extension_loaded('uprofiler') && !extension_loaded('tideways')) {
         error_log('php profiler - either extension xhprof, uprofiler or tideways must be loaded');
         return;
     }
+    /* save datapath */
+    $profiler_datapath =
     /* first register shutdown function */
     register_shutdown_function(
-        function () {
+        function () use ($datapath) {
             $data = array();
             if (extension_loaded('uprofiler')) {
                 $data['profile'] = uprofiler_disable();
@@ -42,12 +40,7 @@ function profiler_start()
                 $cmd = basename($_SERVER['argv'][0]);
                 $uri = $cmd . ' ' . implode(' ', array_slice($_SERVER['argv'], 1));
             }
-            $time             = array_key_exists('REQUEST_TIME', $_SERVER) ? $_SERVER['REQUEST_TIME'] : time();
-            $requestTimeFloat = explode('.', $_SERVER['REQUEST_TIME_FLOAT']);
-            if (!isset($requestTimeFloat[1])) {
-                $requestTimeFloat[1] = 0;
-            }
-            $micro        = $requestTimeFloat[1];
+            $time         = isset($_SERVER['REQUEST_TIME_FLOAT']) ? floatval($_SERVER['REQUEST_TIME_FLOAT']) : microtime();
             $data['meta'] = array(
                 'uri'    => $uri,
                 'server' => $_SERVER,
@@ -55,18 +48,12 @@ function profiler_start()
                 'post'   => $_POST,
                 'env'    => $_ENV,
                 'time'   => $time,
-                'micro'  => $micro,
             );
-            $dir = tr('{path:tmp}/kehikko-profiler');
-            if (cfg(['profiler', 'namespace'])) {
-                $dir .= '/' . cfg(['profiler', 'namespace']);
-            } else {
-                $dir .= '/__default__';
+            /* create data path if it does not exist */
+            if (!is_dir($datapath)) {
+                @mkdir($datapath, 0700, true);
             }
-            if (!is_dir($dir)) {
-                @mkdir($dir, 0700, true);
-            }
-            $file = $dir . '/' . str_pad($time, 16, '0', STR_PAD_LEFT) . '_' . str_pad($micro, 16, '0', STR_PAD_LEFT) . '_' . md5($uri) . '.profile.yml';
+            $file = $datapath . '/' . sprintf('%012.3f', $time) . '_' . uniqid() . '.profile.yml';
             /* dump data */
             $data = Symfony\Component\Yaml\Yaml::dump($data);
             /* write data */
@@ -76,9 +63,6 @@ function profiler_start()
         }
     );
     /* start profiling */
-    if (!isset($_SERVER['REQUEST_TIME_FLOAT'])) {
-        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
-    }
     if (extension_loaded('uprofiler')) {
         uprofiler_enable(UPROFILER_FLAGS_CPU | UPROFILER_FLAGS_MEMORY);
     } else if (extension_loaded('tideways')) {
@@ -89,5 +73,250 @@ function profiler_start()
         } else {
             xhprof_enable(XHPROF_FLAGS_CPU | XHPROF_FLAGS_MEMORY);
         }
+    }
+}
+
+function profiler_html_index($root_url = '/', $datapath = '/tmp/kehikko-php-profiler', $limit = 20)
+{
+    $profiles = [];
+
+    if (is_dir($datapath)) {
+        $files = scandir($datapath, SCANDIR_SORT_DESCENDING);
+        foreach ($files as $file) {
+            $filepath = $datapath . '/' . $file;
+            if (is_dir($filepath) || $file[0] == '.' || substr($file, -4) != '.yml') {
+                continue;
+            }
+            $content = @file_get_contents($filepath);
+            try {
+                $profile = Symfony\Component\Yaml\Yaml::parse($content);
+                if (!empty($profile) && is_array($profile)) {
+                    $profile['id']    = $file;
+                    $profile['total'] = array(
+                        'ct'  => $profile['profile']['main()']['ct'],
+                        'wt'  => $profile['profile']['main()']['wt'],
+                        'cpu' => $profile['profile']['main()']['cpu'],
+                        'mu'  => $profile['profile']['main()']['mu'],
+                        'pmu' => $profile['profile']['main()']['pmu'],
+                    );
+                    $profiles[] = $profile;
+                }
+                $limit--;
+                if ($limit < 1) {
+                    break;
+                }
+            } catch (Throwable $e) {
+                /* unable to parse file */
+            }
+        }
+    }
+
+    $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
+    $twig        = new Twig_Environment($twig_loader);
+
+    return $twig->render('kehikko-profiler-profiles.html.twig', ['profiles' => $profiles, 'root_url' => $root_url]);
+}
+
+function profiler_html_profile($id, $root_url = '/', $datapath = '/tmp/kehikko-php-profiler')
+{
+    $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
+    $twig        = new Twig_Environment($twig_loader);
+    return $twig->render('kehikko-profiler-profile.html.twig', ['profile' => profiler_profile_load($id, $datapath), 'root_url' => $root_url]);
+}
+
+function profiler_html_profile_call_graph($id, $root_url = '/', $datapath = '/tmp/kehikko-php-profiler')
+{
+    $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
+    $twig        = new Twig_Environment($twig_loader);
+    return $twig->render('kehikko-profiler-profile-call-graph.html.twig', ['profile' => profiler_profile_load($id, $datapath), 'root_url' => $root_url]);
+}
+
+function profiler_profile_load($id, $datapath = '/tmp/kehikko-php-profiler')
+{
+    $file = $datapath . '/' . $id;
+    if (!file_exists($file)) {
+        throw new Exception('Profile data not found from: ' . $file);
+    }
+
+    $content = @file_get_contents($file);
+    $profile = Symfony\Component\Yaml\Yaml::parse($content);
+    if (empty($profile) || !is_array($profile)) {
+        throw new Exception('Profile data could not be loaded from: ' . $file);
+    }
+
+    $data = array();
+    /* parse profile functions */
+    foreach ($profile['profile'] as $call => $info) {
+        $caller    = null;
+        $called    = null;
+        $functions = explode('==>', $call, 2);
+        if (count($functions) == 2) {
+            $caller = $functions[0];
+            $called = $functions[1];
+        } else {
+            $called = $functions[0];
+        }
+        if (isset($data[$called])) {
+            $data[$called]['ct'] += intval($info['ct']);
+            $data[$called]['wt'] += intval($info['wt']);
+            $data[$called]['cpu'] += intval($info['cpu']);
+            $data[$called]['mu'] += intval($info['mu']);
+            $data[$called]['pmu'] += intval($info['pmu']);
+            $data[$called]['ewt']  = $data[$called]['wt'];
+            $data[$called]['ecpu'] = $data[$called]['cpu'];
+            $data[$called]['emu']  = $data[$called]['mu'];
+            $data[$called]['epmu'] = $data[$called]['pmu'];
+        } else {
+            $data[$called]            = array();
+            $data[$called]['ct']      = intval($info['ct']);
+            $data[$called]['wt']      = intval($info['wt']);
+            $data[$called]['cpu']     = intval($info['cpu']);
+            $data[$called]['mu']      = intval($info['mu']);
+            $data[$called]['pmu']     = intval($info['pmu']);
+            $data[$called]['ewt']     = intval($info['wt']);
+            $data[$called]['ecpu']    = intval($info['cpu']);
+            $data[$called]['emu']     = intval($info['mu']);
+            $data[$called]['epmu']    = intval($info['pmu']);
+            $data[$called]['callers'] = array($caller);
+            $data[$called]['calls']   = array();
+        }
+    }
+    /* parse exclusives */
+    foreach ($profile['profile'] as $call => $info) {
+        $functions = explode('==>', $call, 2);
+        if (count($functions) != 2) {
+            continue;
+        }
+        $caller = $functions[0];
+        $called = $functions[1];
+        if (!isset($data[$caller])) {
+            continue;
+        }
+        $data[$caller]['ewt'] -= intval($info['wt']);
+        $data[$caller]['ecpu'] -= intval($info['cpu']);
+        $data[$caller]['emu'] -= intval($info['mu']);
+        $data[$caller]['epmu'] -= intval($info['pmu']);
+    }
+    /* parse calls */
+    foreach ($profile['profile'] as $call => $info) {
+        $functions = explode('==>', $call, 2);
+        if (count($functions) != 2) {
+            continue;
+        }
+        $caller = $functions[0];
+        $called = $functions[1];
+        if (!isset($data[$caller]) || !isset($data[$called])) {
+            continue;
+        }
+
+        $data[$caller]['calls'][$called] = $info;
+    }
+    /* memory/wall time hogs */
+    $by_wt  = array();
+    $by_ewt = array();
+    $by_mu  = array();
+    $by_emu = array();
+    foreach ($data as $function => $info) {
+        $by_wt[$info['wt']]   = $function;
+        $by_ewt[$info['ewt']] = $function;
+        $by_mu[$info['mu']]   = $function;
+        $by_emu[$info['emu']] = $function;
+    }
+    krsort($by_wt, SORT_NUMERIC);
+    krsort($by_ewt, SORT_NUMERIC);
+    krsort($by_mu, SORT_NUMERIC);
+    krsort($by_emu, SORT_NUMERIC);
+    ksort($data);
+    $profile['id']      = $id;
+    $profile['profile'] = $data;
+    $profile['by']      = array(
+        'wt'  => $by_wt,
+        'ewt' => $by_ewt,
+        'mu'  => $by_mu,
+        'emu' => $by_emu,
+    );
+    $profile['total'] = array(
+        'ct'  => $profile['profile']['main()']['ct'],
+        'wt'  => $profile['profile']['main()']['wt'],
+        'cpu' => $profile['profile']['main()']['cpu'],
+        'mu'  => $profile['profile']['main()']['mu'],
+        'pmu' => $profile['profile']['main()']['pmu'],
+    );
+
+    return $profile;
+}
+
+function profiler_svg_graph_generate($id, $datapath = '/tmp/kehikko-php-profiler')
+{
+    $svg_file = $datapath . '/' . $id . '.svg';
+    if (file_exists($svg_file)) {
+        /* svg file has already been created, just output the same stuff from previous run */
+        header('Content-type: image/svg+xml');
+        readfile($svg_file);
+        return;
+    }
+
+    $tmp_data_file = $datapath . '/' . $id . '.tmpdata';
+    $data          = profiler_profile_load($id, $datapath);
+
+    $f = fopen($tmp_data_file, 'w');
+    if (!$f) {
+        throw new Exception('profiler unable to open temporary data file for creating svg: ' . $tmp_data_file);
+    }
+
+    fwrite($f, 'digraph callgraph { splines=true; node [shape="box" style="rounded"];');
+    /* list all nodes we want to include */
+    $nodes     = array();
+    $nodes_all = array();
+    profiler_svg_create_nodes($data['profile'], 'main()', $nodes, $nodes_all);
+    /* write basic information for all nodes */
+    $wt_max = $data['profile']['main()']['wt'];
+    foreach ($nodes_all as $function => $node) {
+        $info  = $data['profile'][$function];
+        $r     = 0xff - intval(0x10 * $info['wt'] / $wt_max);
+        $g     = 0xff - intval(0xff * $info['wt'] / $wt_max);
+        $b     = 0xff - intval(0x30 * $info['wt'] / $wt_max);
+        $color = sprintf('#%02x%02x%02x', $r, $g, $b);
+        fwrite($f, $node . ' [style="filled,rounded" fillcolor="' . $color . '" label="' . $function . "\nwt: " . number_format($info['wt']) . ' uS"];');
+    }
+    /* create callgraph links */
+    foreach ($nodes as $node) {
+        fwrite($f, $node['from'] . ' -> ' . $node['to'] . '[color="#00a070" label="' . $node['info']['ct'] . ' call' . ($node['info']['ct'] > 1 ? 's' : '') . '"];');
+    }
+    fwrite($f, '}');
+    fclose($f);
+
+    /* generate svg image */
+    $cmd = 'dot -Tsvg -o' . escapeshellarg($svg_file) . ' ' . escapeshellarg($tmp_data_file);
+    exec($cmd, $output, $r);
+    unlink($tmp_data_file);
+    if ($r !== 0) {
+        throw new Exception('profiler failed to create svg image: ' . $svg_file);
+    }
+    header('Content-type: image/svg+xml');
+    if (readfile($svg_file) === false) {
+        error_log('profiler failed to read svg image: ' . $svg_file);
+    }
+}
+
+function profiler_svg_create_nodes($profile, $function, &$nodes, &$nodes_all)
+{
+    $wt_max               = $profile['main()']['wt'];
+    $search               = array(':', '@', '\\', '(', ')', '{', '}');
+    $from                 = str_replace($search, '_', $function);
+    $nodes_all[$function] = $from;
+    $calls                = $profile[$function]['calls'];
+    foreach ($calls as $call => $info) {
+        if (($profile[$call]['wt'] / $wt_max) < 0.01) {
+            continue;
+        }
+        $to           = str_replace($search, '_', $call);
+        $nodes[$call] = array(
+            'from' => $from,
+            'to'   => $to,
+            'info' => $info,
+        );
+        $nodes_all[$call] = $to;
+        profiler_svg_create_nodes($profile, $call, $nodes, $nodes_all);
     }
 }

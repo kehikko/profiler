@@ -1,0 +1,308 @@
+{% extends 'kehikko-profiler-base.html.twig' %}
+{% block content %}
+<h1>
+  <a class="glyphicon glyphicon-chevron-left" title="Back to profile list" href="{{ root_url }}">
+  </a>
+  <a class="glyphicon glyphicon-picture pull-right" title="View callgraph" href="{{ root_url }}/callgraph/{{ profile.id }}">
+  </a>
+</h1>
+<div class="panel panel-default">
+  <table class="table table-condensed table-hover">
+    <tr>
+      <td>
+        URI:
+      </td>
+      <td>
+        {{ profile.meta.uri }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Date and time:
+      </td>
+      <td>
+        {{ profile.meta.time|number_format(0, '', '')|date('Y-m-d H:i:s') }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Wall Time:
+      </td>
+      <td>
+        {{ profile.total.wt|number_format }}
+        <span class="text-muted">
+          &micro;S
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        CPU:
+      </td>
+      <td>
+        {{ profile.total.cpu|number_format }}
+        <span class="text-muted">
+          &micro;S
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Memory Usage:
+      </td>
+      <td>
+        {{ profile.total.mu|number_format }}
+        <span class="text-muted">
+          bytes
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Memory Usage Peak:
+      </td>
+      <td>
+        {{ profile.total.pmu|number_format }}
+        <span class="text-muted">
+          bytes
+        </span>
+      </td>
+    </tr>
+  </table>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Self Wall Time Hogs
+      </div>
+      <div class="panel-body">
+        {% for value, function in profile.by.ewt|slice(0, 5, true) %}
+        <div style="color: #000;" class="pull-right small">
+          {{ value|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </div>
+        <div style="color: #000;" class="text-left small">
+          {{ function }}
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-warning text-left" role="progressbar" aria-valuenow="{{ value }}" aria-valuemin="0" aria-valuemax="{{ profile.by.ewt|keys|first }}" style="width: {{ (value * 100 / profile.by.ewt|keys|first)|round }}%;"></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Self Memory Hogs
+      </div>
+      <div class="panel-body">
+        {% for value, function in profile.by.emu|slice(0, 5, true) %}
+        <div style="color: #000;" class="pull-right small">
+          {{ value|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </div>
+        <div style="color: #000;" class="text-left small">
+          {{ function }}
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="{{ value }}" aria-valuemin="0" aria-valuemax="{{ profile.by.emu|keys|first }}" style="width: {{ (value * 100 / profile.by.emu|keys|first)|round }}%;">
+            <div style="color: #000;" class="text-left"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Inclusive Wall Time Hogs
+      </div>
+      <div class="panel-body">
+        {% for value, function in profile.by.wt|slice(0, 5, true) %}
+        <div style="color: #000;" class="pull-right small">
+          {{ value|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </div>
+        <div style="color: #000;" class="text-left small">
+          {{ function }}
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="{{ value }}" aria-valuemin="0" aria-valuemax="{{ profile.by.wt|keys|first }}" style="width: {{ (value * 100 / profile.by.wt|keys|first)|round }}%;">
+            <div style="color: #000;" class="text-left"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Inclusive Memory Hogs
+      </div>
+      <div class="panel-body">
+        {% for value, function in profile.by.mu|slice(0, 5, true) %}
+        <div style="color: #000;" class="pull-right small">
+          {{ value|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </div>
+        <div style="color: #000;" class="text-left small">
+          {{ function }}
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="{{ value }}" aria-valuemin="0" aria-valuemax="{{ profile.by.mu|keys|first }}" style="width: {{ (value * 100 / profile.by.mu|keys|first)|round }}%;">
+            <div style="color: #000;" class="text-left"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="input-group">
+  <span class="input-group-addon" id="search-label">
+    <span class="glyphicon glyphicon-search"></span>
+  </span>
+  <input type="text" class="form-control table-search-input" search-target="profile" search-previous="" placeholder="Search for a function" aria-describedby="search-label"/>
+</div>
+<div class="panel panel-default">
+  <table id="profile" class="table table-bordered table-condensed table-hover table-striped table-sortable small">
+    <thead>
+      <tr class="bg-primary">
+        <th>
+          Function
+        </th>
+        <th>
+          Calls
+        </th>
+        <th colspan="2">
+          Wall Time
+        </th>
+        <th colspan="2">
+          CPU
+        </th>
+        <th colspan="2">
+          Memory Usage
+        </th>
+        <th colspan="2">
+          Memory Usage Peak
+        </th>
+      </tr>
+      <tr class="bg-primary">
+        <th class="th-sortable" style="cursor: pointer;" sort-id="function" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="ct" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="ewt" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Self
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="wt" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Incl.
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="ecpu" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Self
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="cpu" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Incl.
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="emu" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Self
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="mu" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Incl.
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="epmu" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Self
+        </th>
+        <th class="th-sortable" style="cursor: pointer;" sort-id="pmu" sort-type="number" sort-order="1">
+          <span class="glyphicon glyphicon-sort"></span>
+          Incl.
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for function, info in profile.profile %}
+      <tr>
+        <td title="{{ function }}" name="function" sort-id="function" sort-order="1" searchable="yes" style="width: 200px;">
+          {{ function|slice(0, 40) }}{% if function|length>
+          40 %}...{% endif %}
+        </td>
+        <td class="text-right" sort-value="{{ info.ct }}" sort-id="ct">
+          {{ info.ct|number_format }}
+        </td>
+        <td class="text-right" sort-value="{{ info.ewt }}" sort-id="ewt">
+          {{ info.ewt|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.wt }}" sort-id="wt">
+          {{ info.wt|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.ecpu }}" sort-id="ecpu">
+          {{ info.ecpu|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.cpu }}" sort-id="cpu">
+          {{ info.cpu|number_format }}
+          <span class="text-muted">
+            &micro;S
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.emu }}" sort-id="emu">
+          {{ info.emu|number_format }}
+          <span class="text-muted">
+            bytes
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.mu }}" sort-id="mu">
+          {{ info.mu|number_format }}
+          <span class="text-muted">
+            bytes
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.epmu }}" sort-id="epmu">
+          {{ info.epmu|number_format }}
+          <span class="text-muted">
+            bytes
+          </span>
+        </td>
+        <td class="text-right" sort-value="{{ info.pmu }}" sort-id="pmu">
+          {{ info.pmu|number_format }}
+          <span class="text-muted">
+            bytes
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock content %}
