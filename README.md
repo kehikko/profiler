@@ -108,7 +108,7 @@ $limit = 20;
 /* "route" */
 if ($request_url == '') {
     /* to index */
-    echo profiler_html_index($root_url, $datapath, $limit);
+    profiler_html_index($root_url, $datapath, $limit);
 } else {
     /* to single call profile */
     $parts = explode('/', $request_url);
@@ -118,10 +118,10 @@ if ($request_url == '') {
         profiler_svg_graph_generate($id, $datapath);
     } else if (strpos($request_url, 'callgraph/') === 0) {
         /* view call graph */
-        echo profiler_html_profile_call_graph($id, $root_url, $datapath);
+        profiler_html_profile_call_graph($id, $root_url, $datapath);
     } else {
         /* view call profile */
-        echo profiler_html_profile($id, $root_url, $datapath);
+        profiler_html_profile($id, $root_url, $datapath);
     }
 }
 ```
