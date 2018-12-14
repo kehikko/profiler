@@ -63,6 +63,8 @@ The part that writes profiling data, needs only *Symfony Yaml*. The part that is
 Call `profiler_start`from your code. So far no `profiler_stop` is implemented, probably will be done in the future.
 
 ```php
+/* optional profiler.php include, done automatically when using composer autoloader */
+//require_once '/profiler/install/dir/profiler.php';
 /* do this somewhere in your startup code,
  * path to profiler data directory is optional, default shown here
  */
