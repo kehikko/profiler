@@ -32,10 +32,11 @@ phpenmod tideways
 
 ## Simple test example
 
-Do the following in this project root after you have installed tideways and graphviz:
+Do the following after you have installed tideways and graphviz:
 
 ```sh
 git clone https://github.com/kehikko/profiler.git
+cd profiler
 composer install
 php example/example.php
 php -S localhost:8080 web/index.php
