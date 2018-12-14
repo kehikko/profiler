@@ -43,15 +43,28 @@ The part that writes profiling data, needs only *Symfony Yaml*. The part that is
 
 ## Setup
 
+### Simple test example
+
+Do the following in this project root after you have installed tideways and graphviz:
+
+```sh
+composer install
+php example/example.php
+php -S localhost:8080 web/index.php
+```
+
+And if you did this on your local machine, you should be able to browse to url `http://localhost:8080`
+and see some results.
+
 ### Generating profiling data
 
-Call `profile_start`from your code. So far no `profile_stop` is implemented, probably will be done in the future.
+Call `profiler_start`from your code. So far no `profiler_stop` is implemented, probably will be done in the future.
 
 ```php
 /* do this somewhere in your startup code,
  * path to profiler data directory is optional, default shown here
  */
-profile_start('/tmp/kehikko-php-profiler');
+profiler_start('/tmp/kehikko-php-profiler');
 ```
 
 ### Apache
