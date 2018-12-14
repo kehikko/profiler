@@ -47,6 +47,8 @@ and see some results.
 
 ## Install
 
+To install this profiler into existing project, run:
+
 ```sh
 composer require kehikko/profiler
 ```
