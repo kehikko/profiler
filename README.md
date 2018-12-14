@@ -15,7 +15,7 @@ as a requirement when installing this from *Composer*.
 
 ## Requirements
 
-***PHP 7.0***, PHP ***profiler extension*** (listed below), ***Twig***, ***Symfony Yaml*** and command ***dot*** (from GraphViz).
+***PHP 7.0***, PHP ***profiler extension*** (listed below) and command ***dot*** (from GraphViz). ***Twig***, ***Symfony Yaml*** are optional since they can be installed using *Composer*.
 
 One of these PHP-extensions is required:
 
@@ -23,10 +23,9 @@ One of these PHP-extensions is required:
 * uprofiler
 * xhprof
 
-In *Ubuntu 18.04* you should be able to install and setup needed depencies manually this way:
+In *Ubuntu 18.04* you should be able to install required depencies this way:
 
 ```sh
-apt install php-symfony-yaml php-twig # optional, will be installed through Composer
 apt install php-tideways graphviz # these have to be installed manually
 phpenmod tideways
 ```
