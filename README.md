@@ -26,7 +26,7 @@ One of these PHP-extensions is required:
 In *Ubuntu 18.04* you should be able to install required depencies this way:
 
 ```sh
-apt install php-tideways graphviz # these have to be installed manually
+apt install php-tideways graphviz
 phpenmod tideways
 ```
 
