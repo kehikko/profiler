@@ -7,15 +7,15 @@ Has a browser based UI to view profiled calls.
 
 Tested with *tideways* and *PHP 7.2* in *Ubuntu 18.04*.
 
-All the code is based on a much older implementation that used *xhprof* and *PHP 5.x* (tested in *Ubuntu 16.04* and *CentOS/cPanel v???*).
-Just ported the code as a standalone version from *Kehikko v1* framework when starting *Kehikko v2*.
+All the code is based on a much older implementation that used *xhprof* and *PHP 5.x* (tested and used at least in *Ubuntu 14.04* and *CentOS/cPanel v???*).
+Ported the code as a standalone version from *Kehikko v1* framework when starting *Kehikko v2*.
 
 Should still work even with *PHP 5.x* since no changes have been made to the core functionality, but I made *PHP 7.0*
 as a requirement when installing this from *Composer*.
 
 ## Requirements
 
-PHP 7.0, PHP profiler extension (listed below), Twig, Symfony Yaml and command dot (from GraphViz).
+***PHP 7.0***, PHP ***profiler extension*** (listed below) and command ***dot*** (from GraphViz). ***Twig*** and ***Symfony Yaml*** are optional since they can be installed using *Composer*.
 
 One of these PHP-extensions is required:
 
@@ -23,13 +23,27 @@ One of these PHP-extensions is required:
 * uprofiler
 * xhprof
 
-In *Ubuntu 18.04* you should be able to install and setup needed depencies manually this way:
+In *Ubuntu 18.04* you should be able to install required depencies this way:
 
 ```sh
-apt install php-symfony-yaml php-twig # optional, will be installed through Composer
-apt install php-tideways graphviz # these have to be installed manually
+apt install php-tideways graphviz
 phpenmod tideways
 ```
+
+## Simple test example
+
+Do the following after you have installed tideways and graphviz:
+
+```sh
+git clone https://github.com/kehikko/profiler.git
+cd profiler
+composer install
+php example/example.php
+php -S localhost:8080 web/index.php
+```
+
+And if you did this on your local machine, you should be able to browse to url `http://localhost:8080`
+and see some results.
 
 ## Install
 
@@ -43,19 +57,6 @@ this profiler code is run.
 The part that writes profiling data, needs only *Symfony Yaml*. The part that is used to view profiled calls, needs both.
 
 ## Setup
-
-### Simple test example
-
-Do the following in this project root after you have installed tideways and graphviz:
-
-```sh
-composer install
-php example/example.php
-php -S localhost:8080 web/index.php
-```
-
-And if you did this on your local machine, you should be able to browse to url `http://localhost:8080`
-and see some results.
 
 ### Generating profiling data
 
