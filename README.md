@@ -8,7 +8,7 @@ Has a browser based UI to view profiled calls.
 Tested with *tideways* and *PHP 7.2* in *Ubuntu 18.04*.
 
 All the code is based on a much older implementation that used *xhprof* and *PHP 5.x* (tested and used at least in *Ubuntu 14.04* and *CentOS/cPanel v???*).
-Just ported the code as a standalone version from *Kehikko v1* framework when starting *Kehikko v2*.
+Ported the code as a standalone version from *Kehikko v1* framework when starting *Kehikko v2*.
 
 Should still work even with *PHP 5.x* since no changes have been made to the core functionality, but I made *PHP 7.0*
 as a requirement when installing this from *Composer*.
