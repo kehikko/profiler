@@ -119,6 +119,10 @@ if ($request_url == '') {
 }
 ```
 
+Now you can see your profiled calls when browsing to `http://your.web.server/_profiler`.
+
 **NOTE:** This script assumes that *Composer* installed `vendor` directory containing libraries is located one step down from the directory it is located in.
 
-Now you can see your profiled calls when browsing to `http://your.web.server/_profiler`.
+**NOTE:** At least in Ubuntu 18.04 systemd forces `/tmp/` in PHP with apache to a different location,
+usually `/tmp/systemd-private-*-apache2.service-*/`. This is not the case when running PHP from command line,
+so don't get baffled when profiling stuff in command line does not show up in your apache side.

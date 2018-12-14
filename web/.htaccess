@@ -1,4 +1,4 @@
 
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(/.*)?$ index.php [NC,L,NE]
+RewriteRule ^(.*)\.* index.php [NC,L,NE]
