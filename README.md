@@ -62,7 +62,7 @@ The part that writes profiling data, needs only *Symfony Yaml*. The part that is
 
 ### Generating profiling data
 
-Call `profiler_start`from your code. So far no `profiler_stop` is implemented, probably will be done in the future.
+Call `profiler_start` from your code:
 
 ```php
 /* optional profiler.php include, done automatically when using composer autoloader */
@@ -72,6 +72,21 @@ Call `profiler_start`from your code. So far no `profiler_stop` is implemented, p
  * path to profiler data directory is optional, default shown here
  */
 profiler_start('/tmp/kehikko-php-profiler');
+```
+
+Call `profiler_stop` later (or don't and let it be called automatically when PHP execution stops):
+
+```php
+profiler_stop();
+```
+
+Also you can call `profiler_running` to see whether or not profiler has been started:
+
+```php
+if (profiler_running() && environment_is_in_production()) {
+    error_log('running profiler in production environment, stop now!');
+    die;
+}
 ```
 
 ### Apache

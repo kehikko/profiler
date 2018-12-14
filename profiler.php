@@ -1,5 +1,14 @@
 <?php
 
+static $profiler_file       = null;
+static $profiler_start_time = null;
+
+function profiler_running()
+{
+    global $profiler_file;
+    return is_string($profiler_file);
+}
+
 function profiler_start($datapath = '/tmp/kehikko-php-profiler')
 {
     /* this file should not - under no circumstances - interfere with any other application */
@@ -7,61 +16,21 @@ function profiler_start($datapath = '/tmp/kehikko-php-profiler')
         error_log('php profiler - either extension xhprof, uprofiler or tideways must be loaded');
         return;
     }
-    /* save datapath */
-    $profiler_datapath =
+    /* do no restart */
+    if (profiler_running()) {
+        return;
+    }
+    /* generate some profiling info here already */
+    global $profiler_file;
+    global $profiler_start_time;
+    $profiler_start_time = isset($_SERVER['REQUEST_TIME_FLOAT']) ? floatval($_SERVER['REQUEST_TIME_FLOAT']) : microtime();
+    /* create data path if it does not exist */
+    if (!is_dir($datapath)) {
+        @mkdir($datapath, 0700, true);
+    }
+    $profiler_file = $datapath . '/' . sprintf('%012.3f', $profiler_start_time) . '_' . uniqid() . '.profile.yml';
     /* first register shutdown function */
-    register_shutdown_function(
-        function () use ($datapath) {
-            $data = array();
-            if (extension_loaded('uprofiler')) {
-                $data['profile'] = uprofiler_disable();
-            } else if (extension_loaded('tideways')) {
-                $data['profile'] = tideways_disable();
-            } else {
-                $data['profile'] = xhprof_disable();
-            }
-            /* ignore_user_abort(true) allows your PHP script to continue executing, even if the user has terminated their request */
-            ignore_user_abort(true);
-            flush();
-            $uri = null;
-            if (array_key_exists('REQUEST_URI', $_SERVER) && array_key_exists('SERVER_NAME', $_SERVER)) {
-                $uri = $_SERVER['SERVER_NAME'];
-                if (isset($_SERVER['HTTPS'])) {
-                    $uri = 'https://' . $uri;
-                } else {
-                    $uri = 'http://' . $uri;
-                }
-                if (isset($_SERVER['PORT'])) {
-                    $uri .= $_SERVER['PORT'] != 80 ? $_SERVER['PORT'] : '';
-                }
-                $uri .= $_SERVER['REQUEST_URI'];
-            }
-            if (empty($uri) && isset($_SERVER['argv'])) {
-                $cmd = basename($_SERVER['argv'][0]);
-                $uri = $cmd . ' ' . implode(' ', array_slice($_SERVER['argv'], 1));
-            }
-            $time         = isset($_SERVER['REQUEST_TIME_FLOAT']) ? floatval($_SERVER['REQUEST_TIME_FLOAT']) : microtime();
-            $data['meta'] = array(
-                'uri'    => $uri,
-                'server' => $_SERVER,
-                'get'    => $_GET,
-                'post'   => $_POST,
-                'env'    => $_ENV,
-                'time'   => $time,
-            );
-            /* create data path if it does not exist */
-            if (!is_dir($datapath)) {
-                @mkdir($datapath, 0700, true);
-            }
-            $file = $datapath . '/' . sprintf('%012.3f', $time) . '_' . uniqid() . '.profile.yml';
-            /* dump data */
-            $data = Symfony\Component\Yaml\Yaml::dump($data);
-            /* write data */
-            if (@file_put_contents($file, $data) === false) {
-                error_log('kehikko profiler - unable to write profiler data to file: ' . $file);
-            }
-        }
-    );
+    register_shutdown_function('profiler_stop');
     /* start profiling */
     if (extension_loaded('uprofiler')) {
         uprofiler_enable(UPROFILER_FLAGS_CPU | UPROFILER_FLAGS_MEMORY);
@@ -74,6 +43,61 @@ function profiler_start($datapath = '/tmp/kehikko-php-profiler')
             xhprof_enable(XHPROF_FLAGS_CPU | XHPROF_FLAGS_MEMORY);
         }
     }
+}
+
+function profiler_stop()
+{
+    /* do no stop if not started */
+    if (!profiler_running()) {
+        return;
+    }
+    global $profiler_file;
+    global $profiler_start_time;
+    /* gather data */
+    $data = array();
+    if (extension_loaded('uprofiler')) {
+        $data['profile'] = uprofiler_disable();
+    } else if (extension_loaded('tideways')) {
+        $data['profile'] = tideways_disable();
+    } else {
+        $data['profile'] = xhprof_disable();
+    }
+    /* ignore_user_abort(true) allows your PHP script to continue executing, even if the user has terminated their request */
+    ignore_user_abort(true);
+    flush();
+    $uri = null;
+    if (array_key_exists('REQUEST_URI', $_SERVER) && array_key_exists('SERVER_NAME', $_SERVER)) {
+        $uri = $_SERVER['SERVER_NAME'];
+        if (isset($_SERVER['HTTPS'])) {
+            $uri = 'https://' . $uri;
+        } else {
+            $uri = 'http://' . $uri;
+        }
+        if (isset($_SERVER['PORT'])) {
+            $uri .= $_SERVER['PORT'] != 80 ? $_SERVER['PORT'] : '';
+        }
+        $uri .= $_SERVER['REQUEST_URI'];
+    }
+    if (empty($uri) && isset($_SERVER['argv'])) {
+        $cmd = basename($_SERVER['argv'][0]);
+        $uri = $cmd . ' ' . implode(' ', array_slice($_SERVER['argv'], 1));
+    }
+    $data['meta'] = array(
+        'uri'    => $uri,
+        'server' => $_SERVER,
+        'get'    => $_GET,
+        'post'   => $_POST,
+        'env'    => $_ENV,
+        'time'   => $profiler_start_time,
+    );
+    /* dump data */
+    $data = Symfony\Component\Yaml\Yaml::dump($data);
+    /* write data */
+    if (@file_put_contents($profiler_file, $data) === false) {
+        error_log('kehikko profiler - unable to write profiler data to file: ' . $profiler_file);
+    }
+    $profiler_file       = null;
+    $profiler_start_time = null;
 }
 
 function profiler_html_index($root_url = '/', $datapath = '/tmp/kehikko-php-profiler', $limit = 20)

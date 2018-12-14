@@ -2,8 +2,6 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-profiler_start();
-
 function fetch()
 {
     $data = file_get_contents('https://google.com');
@@ -25,6 +23,13 @@ function loop()
     return $a;
 }
 
+/* start profiling here */
+profiler_start();
+
+/* do stuff */
 fetch();
 yaml();
 loop();
+
+/* stop is automatically called when script execution stops or could be called earlier manually */
+//profiler_stop();
