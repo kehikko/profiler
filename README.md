@@ -30,6 +30,20 @@ apt install php-tideways graphviz
 phpenmod tideways
 ```
 
+## Simple test example
+
+Do the following in this project root after you have installed tideways and graphviz:
+
+```sh
+git clone https://github.com/kehikko/profiler.git
+composer install
+php example/example.php
+php -S localhost:8080 web/index.php
+```
+
+And if you did this on your local machine, you should be able to browse to url `http://localhost:8080`
+and see some results.
+
 ## Install
 
 ```sh
@@ -42,19 +56,6 @@ this profiler code is run.
 The part that writes profiling data, needs only *Symfony Yaml*. The part that is used to view profiled calls, needs both.
 
 ## Setup
-
-### Simple test example
-
-Do the following in this project root after you have installed tideways and graphviz:
-
-```sh
-composer install
-php example/example.php
-php -S localhost:8080 web/index.php
-```
-
-And if you did this on your local machine, you should be able to browse to url `http://localhost:8080`
-and see some results.
 
 ### Generating profiling data
 
