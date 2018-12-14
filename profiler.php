@@ -299,7 +299,7 @@ function profiler_svg_graph_generate($id, $datapath = '/tmp/kehikko-php-profiler
     }
 }
 
-function profiler_svg_create_nodes($profile, $function, &$nodes, &$nodes_all, $recursion_limit = 20)
+function profiler_svg_create_nodes($profile, $function, &$nodes, &$nodes_all, $recursion_limit = 25)
 {
     if ($recursion_limit < 1) {
         error_log('recursion limit reached in profiler_svg_create_nodes(), current function: ' . $function);
