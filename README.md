@@ -1,4 +1,5 @@
-# Profiler
+# Profiling PHP
+![Header](screenshots/header.png)
 
 Generic profiling implementation for PHP.
 
@@ -126,3 +127,14 @@ Now you can see your profiled calls when browsing to `http://your.web.server/_pr
 **NOTE:** At least in Ubuntu 18.04 systemd forces `/tmp/` in PHP with apache to a different location,
 usually `/tmp/systemd-private-*-apache2.service-*/`. This is not the case when running PHP from command line,
 so don't get baffled when profiling stuff in command line does not show up in your apache side.
+
+## Screenshots
+
+### Profiles
+![Profiles](screenshots/profiles.png)
+
+### Profile
+![Profile](screenshots/profile.png)
+
+### Call graph
+![Call graph](screenshots/callgraph.png)
