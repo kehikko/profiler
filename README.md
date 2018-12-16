@@ -58,6 +58,10 @@ this profiler code is run.
 
 The part that writes profiling data doe not need *Twig*. Only the part that is used to view profiled calls, needs *Twig*.
 
+**NOTE:** Usually you probably do not want to install profiler into your project and
+it should be installed elsewhere in a manner like in *Simple test example* and `profiler.php` included
+to your project from there only on local test installation.
+
 ## Setup
 
 ### Generating profiling data
