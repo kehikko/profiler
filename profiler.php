@@ -28,7 +28,7 @@ function profiler_start($datapath = '/tmp/kehikko-php-profiler')
     if (!is_dir($datapath)) {
         @mkdir($datapath, 0700, true);
     }
-    $profiler_file = $datapath . '/' . sprintf('%012.3f', $profiler_start_time) . '_' . uniqid() . '.profile.yml';
+    $profiler_file = $datapath . '/' . sprintf('%012.3f', $profiler_start_time) . '_' . uniqid() . '.profile.json';
     /* first register shutdown function */
     register_shutdown_function('profiler_stop');
     /* start profiling */
@@ -91,7 +91,7 @@ function profiler_stop()
         'time'   => $profiler_start_time,
     );
     /* dump data */
-    $data = Symfony\Component\Yaml\Yaml::dump($data);
+    $data = json_encode($data);
     /* write data */
     if (@file_put_contents($profiler_file, $data) === false) {
         error_log('kehikko profiler - unable to write profiler data to file: ' . $profiler_file);
@@ -108,12 +108,12 @@ function profiler_html_index($root_url = '/', $datapath = '/tmp/kehikko-php-prof
         $files = scandir($datapath, SCANDIR_SORT_DESCENDING);
         foreach ($files as $file) {
             $filepath = $datapath . '/' . $file;
-            if (is_dir($filepath) || $file[0] == '.' || substr($file, -4) != '.yml') {
+            if (is_dir($filepath) || $file[0] == '.' || substr($file, -4) != '.json') {
                 continue;
             }
             $content = @file_get_contents($filepath);
             try {
-                $profile = Symfony\Component\Yaml\Yaml::parse($content);
+                $profile = json_decode($content, true);
                 if (!empty($profile) && is_array($profile)) {
                     $profile['id']    = $file;
                     $profile['total'] = array(
@@ -137,7 +137,6 @@ function profiler_html_index($root_url = '/', $datapath = '/tmp/kehikko-php-prof
 
     $twig_loader = new Twig_Loader_Filesystem(__DIR__ . '/views');
     $twig        = new Twig_Environment($twig_loader);
-
     echo $twig->render('kehikko-profiler-profiles.html.twig', ['profiles' => $profiles, 'root_url' => $root_url]);
 }
 
@@ -163,7 +162,7 @@ function profiler_profile_load($id, $datapath = '/tmp/kehikko-php-profiler')
     }
 
     $content = @file_get_contents($file);
-    $profile = Symfony\Component\Yaml\Yaml::parse($content);
+    $profile = json_decode($content, true);
     if (empty($profile) || !is_array($profile)) {
         throw new Exception('Profile data could not be loaded from: ' . $file);
     }

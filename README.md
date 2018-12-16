@@ -15,7 +15,7 @@ as a requirement when installing this from *Composer*.
 
 ## Requirements
 
-***PHP 7.0***, PHP ***profiler extension*** (listed below) and command ***dot*** (from GraphViz). ***Twig*** and ***Symfony Yaml*** are optional since they can be installed using *Composer*.
+***PHP 7.0***, PHP ***profiler extension*** (listed below) and command ***dot*** (from GraphViz). ***Twig*** is optional since it can be installed using *Composer*.
 
 One of these PHP-extensions is required:
 
@@ -53,10 +53,10 @@ To install this profiler into existing project, run:
 composer require kehikko/profiler
 ```
 
-If you plan to use this without *Composer*, you need to install *Twig* and *Symfony Yaml* manually so that they are autoloaded when
+If you plan to use this without *Composer*, you need to install *Twig* manually so that it is autoloaded when
 this profiler code is run.
 
-The part that writes profiling data, needs only *Symfony Yaml*. The part that is used to view profiled calls, needs both.
+The part that writes profiling data doe not need *Twig*. Only the part that is used to view profiled calls, needs *Twig*.
 
 ## Setup
 
