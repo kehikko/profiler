@@ -8,10 +8,10 @@ function fetch()
     echo 'https://google.com main html content length is ' . strlen($data) . "\n";
 }
 
-function yaml()
+function json()
 {
-    $content = file_get_contents(__DIR__.'/yaml.yml');
-    return Symfony\Component\Yaml\Yaml::parse($content);
+    $content = file_get_contents(__DIR__.'/json.json');
+    return json_decode($content, true);
 }
 
 function loop()
@@ -28,7 +28,7 @@ profiler_start();
 
 /* do stuff */
 fetch();
-yaml();
+json();
 loop();
 
 /* stop is automatically called when script execution stops or could be called earlier manually */

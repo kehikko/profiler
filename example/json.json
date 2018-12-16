@@ -1,0 +1,10 @@
+{
+  "json": {
+    "info": "this is a test json",
+    "check": true,
+    "array": [
+      true,
+      null
+    ]
+  }
+}

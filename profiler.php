@@ -108,7 +108,7 @@ function profiler_html_index($root_url = '/', $datapath = '/tmp/kehikko-php-prof
         $files = scandir($datapath, SCANDIR_SORT_DESCENDING);
         foreach ($files as $file) {
             $filepath = $datapath . '/' . $file;
-            if (is_dir($filepath) || $file[0] == '.' || substr($file, -4) != '.json') {
+            if (is_dir($filepath) || $file[0] == '.' || substr($file, -5) != '.json') {
                 continue;
             }
             $content = @file_get_contents($filepath);
